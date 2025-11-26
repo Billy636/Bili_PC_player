@@ -1,0 +1,60 @@
+{
+  "name": "bilibili-desktop-player",
+  "version": "2.0.0",
+  "main": "dist-electron/main.js", 
+  "description": "Bilibili Desktop Player built with Vue 3 and Electron",
+  "author": "Your Name",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && electron-builder",
+    "preview": "vite preview",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "dependencies": {
+    "uiohook-napi": "^1.5.4"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.5.0",
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1",
+    "vite": "^5.0.0",
+    "vite-plugin-electron": "^0.28.0",
+    "vite-plugin-electron-renderer": "^0.14.5",
+    "vue": "^3.3.0"
+  },
+  "build": {
+    "appId": "com.bilibili.player",
+    "productName": "Bili自制PC播放器_by_kurisu",
+    "copyright": "Copyright © 2024",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "package.json",
+      "electron/assets/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "electron/assets/favicon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "B站自制播放器"
+    },
+    "asar": true,
+    "asarUnpack": [
+      "**/node_modules/uiohook-napi"
+    ]
+  }
+}
