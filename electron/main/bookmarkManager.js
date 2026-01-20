@@ -3,11 +3,11 @@ import fs from 'fs';
 import path from 'path';
 import { app } from 'electron';
 
-// 注意：这里我们不再去计算 src 目录，而是直接使用 Electron 提供的用户数据目录
-// Windows: %APPDATA%/YourAppName/
-// macOS: ~/Library/Application Support/YourAppName/
-// 这样可以确保即使打包后也有读写权限，且数据不会随应用更新丢失
-const DATA_DIR_NAME = 'user_data';
+// 书签数据统一存储到用户主目录 ~/.bilibili-player/
+// Windows: C:\Users\<用户名>\.bilibili-player\
+// macOS/Linux: ~/.bilibili-player/
+// 与 config.json 同目录，便于用户管理和备份
+const DATA_DIR_NAME = '.bilibili-player';
 const BOOKMARKS_FILE_NAME = 'bookmarks.json';
 
 class BookmarkManager {
@@ -25,7 +25,7 @@ class BookmarkManager {
   init() {
     if (this.userDataPath) return; // 已初始化
 
-    this.userDataPath = path.join(app.getPath('userData'), DATA_DIR_NAME);
+    this.userDataPath = path.join(app.getPath('home'), DATA_DIR_NAME);
     this.bookmarksFilePath = path.join(this.userDataPath, BOOKMARKS_FILE_NAME);
 
     this.ensureDataDirectory();
@@ -50,7 +50,7 @@ class BookmarkManager {
         this.bookmarks = JSON.parse(data);
         // 简单的数据清洗，确保是数组
         if (!Array.isArray(this.bookmarks)) {
-            this.bookmarks = [];
+          this.bookmarks = [];
         }
         console.log(`[BookmarkManager] 加载成功，共 ${this.bookmarks.length} 条书签`);
       } else {
@@ -86,28 +86,45 @@ class BookmarkManager {
     this.init();
     if (!bookmark || !bookmark.bv) return false;
 
-    // 逻辑优化：如果 BV 和 P数 相同，视为更新
-    const page = bookmark.page || 1;
-    const existingIndex = this.bookmarks.findIndex(
-      b => b.bv === bookmark.bv && (b.page || 1) === page
-    );
+    // 查找同一 bv 视频的所有书签
+    const sameBvBookmarks = this.bookmarks
+      .map((b, index) => ({ ...b, _index: index }))
+      .filter(b => b.bv === bookmark.bv);
 
-    if (existingIndex !== -1) {
-      // 更新
-      const old = this.bookmarks[existingIndex];
-      this.bookmarks[existingIndex] = {
-        ...old,
-        ...bookmark,
-        id: old.id, // ID 保持不变
-        createdAt: old.createdAt // 创建时间保持不变
-      };
-    } else {
-      // 新增
-      this.bookmarks.push({
+    if (sameBvBookmarks.length > 0) {
+      // 按创建时间排序，找最新的无笔记书签
+      const sortedByTime = [...sameBvBookmarks].sort((a, b) => b.createdAt - a.createdAt);
+      const latestNoNote = sortedByTime.find(b => !b.note || !b.note.trim());
+
+      if (latestNoNote) {
+        // 找到无笔记的书签，覆盖它
+        const targetIndex = latestNoNote._index;
+        const old = this.bookmarks[targetIndex];
+        this.bookmarks[targetIndex] = {
+          ...old,
           ...bookmark,
-          page,
+          id: old.id,
+          createdAt: old.createdAt,
+          note: old.note || ''
+        };
+      } else {
+        // 所有同 bv 书签都有笔记，新建书签
+        this.bookmarks.push({
+          ...bookmark,
+          page: bookmark.page || 1,
           id: bookmark.id || Date.now().toString(),
-          createdAt: bookmark.createdAt || Date.now()
+          createdAt: bookmark.createdAt || Date.now(),
+          note: ''
+        });
+      }
+    } else {
+      // 没有同 bv 的书签，新增
+      this.bookmarks.push({
+        ...bookmark,
+        page: bookmark.page || 1,
+        id: bookmark.id || Date.now().toString(),
+        createdAt: bookmark.createdAt || Date.now(),
+        note: ''
       });
     }
 
@@ -128,7 +145,7 @@ class BookmarkManager {
     this.init();
     const idx = this.bookmarks.findIndex(b => b.id === id);
     if (idx === -1) return false;
-    
+
     this.bookmarks[idx] = { ...this.bookmarks[idx], ...updates };
     return this.saveBookmarks();
   }
@@ -151,10 +168,10 @@ class BookmarkManager {
       return null;
     }
   }
-  
+
   getDataDirectory() {
-      this.init();
-      return this.userDataPath;
+    this.init();
+    return this.userDataPath;
   }
 }
 

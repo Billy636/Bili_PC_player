@@ -55,7 +55,37 @@
               <span class="tag tag-time">{{ formatTime(item.currentTime) }}</span>
               <span class="date-text">{{ formatDate(item.createdAt) }}</span>
             </div>
+
+            <!-- 笔记区域 -->
+            <div class="b-note" v-if="item.note || editingNoteId === item.id">
+              <div v-if="editingNoteId === item.id" class="note-edit-container" @click.stop>
+                <textarea 
+                  class="note-input"
+                  v-model="editingNoteText"
+                  placeholder="记录你的笔记..."
+                  @keydown.ctrl.enter="saveNote(item)"
+                  @click.stop
+                  @mousedown.stop
+                ></textarea>
+                <div class="note-actions">
+                  <button class="note-btn note-save" @click.stop="saveNote(item)">保存</button>
+                  <button class="note-btn note-cancel" @click.stop="cancelEditNote">取消</button>
+                </div>
+              </div>
+              <div v-else class="note-display" @click.stop="startEditNote(item)">
+                <span class="note-icon">📝</span>
+                <span class="note-text">{{ item.note }}</span>
+              </div>
+            </div>
           </div>
+
+          <!-- 笔记按钮（无笔记时显示） -->
+          <button 
+            v-if="!item.note && editingNoteId !== item.id" 
+            class="btn-icon-note" 
+            @click.stop="startEditNote(item)" 
+            title="添加笔记"
+          >📝</button>
 
           <button class="btn-icon-delete" @click.stop="handleDelete(item)" title="删除">
             <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -75,7 +105,27 @@ const bookmarks = ref([]);
 const searchText = ref('');
 const searchInput = ref(null);
 
-// ... (逻辑部分保持不变，完全复用之前的即可) ...
+// 笔记编辑状态
+const editingNoteId = ref(null);
+const editingNoteText = ref('');
+
+const startEditNote = (item) => {
+  editingNoteId.value = item.id;
+  editingNoteText.value = item.note || '';
+};
+
+const cancelEditNote = () => {
+  editingNoteId.value = null;
+  editingNoteText.value = '';
+};
+
+const saveNote = async (item) => {
+  if (window.electronAPI) {
+    await window.electronAPI.bookmarksUpdate(item.id, { note: editingNoteText.value });
+    loadBookmarks();
+  }
+  cancelEditNote();
+};
 // 为了节省篇幅，这里的 JS 逻辑与上一版完全一致，请保留 loadBookmarks, filteredList, handleJump 等函数
 // 仅需确保 stringToGradient 等工具函数存在
 const loadBookmarks = async () => {
@@ -248,8 +298,8 @@ const stringToGradient = (str) => {
 .b-info, .b-cover, .btn-icon-delete {
   pointer-events: none; /* 让鼠标事件直接穿透到 card，减少事件冒泡处理 */
 }
-/* 但要允许点击删除按钮 */
-.btn-icon-delete {
+/* 但要允许点击删除按钮和笔记区域 */
+.btn-icon-delete, .b-note {
   pointer-events: auto;
 }
 
@@ -300,4 +350,55 @@ const stringToGradient = (str) => {
   justify-content: center; height: 200px; color: #999;
 }
 .empty-icon { font-size: 48px; margin-bottom: 10px; opacity: 0.5; }
+
+/* 笔记区域 */
+.b-note { margin-top: 6px; }
+.note-display {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 8px; background: rgba(103, 194, 58, 0.1);
+  border-radius: 4px; cursor: pointer; font-size: 12px; color: #67c23a;
+  max-width: 100%;
+}
+.note-display:hover { background: rgba(103, 194, 58, 0.2); }
+.note-icon { flex-shrink: 0; }
+.note-text { 
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
+  max-width: 400px;
+}
+:global(body.theme-dark) .note-display { 
+  background: rgba(103, 194, 58, 0.15); 
+  color: #85ce61; 
+}
+
+/* 笔记编辑 */
+.note-edit-container { display: flex; flex-direction: column; gap: 6px; }
+.note-input {
+  width: 100%; min-height: 50px; max-height: 100px; padding: 8px;
+  border: 1px solid #dcdfe6; border-radius: 6px;
+  font-size: 12px; resize: vertical; font-family: inherit;
+  background: #fff; color: #333;
+}
+.note-input:focus { border-color: #67c23a; outline: none; box-shadow: 0 0 0 2px rgba(103,194,58,0.15); }
+:global(body.theme-dark) .note-input { 
+  background: #2a2a2a; border-color: #444; color: #eee; 
+}
+.note-actions { display: flex; gap: 6px; }
+.note-btn {
+  padding: 4px 12px; border: none; border-radius: 4px;
+  font-size: 12px; cursor: pointer; transition: opacity 0.2s;
+}
+.note-btn:hover { opacity: 0.85; }
+.note-save { background: #67c23a; color: #fff; }
+.note-cancel { background: #eee; color: #666; }
+:global(body.theme-dark) .note-cancel { background: #3a3a3a; color: #ccc; }
+
+/* 笔记按钮 */
+.btn-icon-note {
+  width: 32px; height: 32px; border-radius: 8px; border: none;
+  background: transparent; cursor: pointer; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.2s; flex-shrink: 0;
+}
+.btn-icon-note:hover { background: rgba(103,194,58,0.1); }
+.b-card:hover .btn-icon-note { opacity: 1; }
 </style>
