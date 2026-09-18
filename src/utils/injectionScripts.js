@@ -42,6 +42,20 @@ export const INJECT_COLLECT_INFO_SCRIPT = `
       var video = document.querySelector('video');
       var currentTime = video ? video.currentTime || 0 : 0;
       var duration = video ? video.duration || 0 : 0;
+      var ended = video ? video.ended || false : false;
+
+      // 分P与多集信息提取
+      var totalPages = 1;
+      var partTitle = '';
+      if (window.__INITIAL_STATE__ && window.__INITIAL_STATE__.videoData) {
+        var vd = window.__INITIAL_STATE__.videoData;
+        if (vd.pages && vd.pages.length) {
+          totalPages = vd.pages.length;
+          if (vd.pages[page - 1]) {
+            partTitle = vd.pages[page - 1].part || '';
+          }
+        }
+      }
 
       // 封面提取
       var coverUrl = '';
@@ -59,9 +73,12 @@ export const INJECT_COLLECT_INFO_SCRIPT = `
           url: url, 
           bv: bv, 
           page: page, 
+          totalPages: totalPages,
+          partTitle: partTitle,
           title: title, 
           currentTime: currentTime,
           duration: duration,
+          ended: ended,
           coverUrl: coverUrl 
       };
     } catch (e) { 

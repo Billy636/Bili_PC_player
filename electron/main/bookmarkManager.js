@@ -91,6 +91,9 @@ class BookmarkManager {
       .map((b, index) => ({ ...b, _index: index }))
       .filter(b => b.bv === bookmark.bv);
 
+    const defaultStatus = (bookmark.currentTime && bookmark.currentTime > 5) ? 'watching' : 'unwatched';
+    const initialStatus = bookmark.watchStatus || defaultStatus;
+
     if (sameBvBookmarks.length > 0) {
       // 按创建时间排序，找最新的无笔记书签
       const sortedByTime = [...sameBvBookmarks].sort((a, b) => b.createdAt - a.createdAt);
@@ -105,7 +108,8 @@ class BookmarkManager {
           ...bookmark,
           id: old.id,
           createdAt: old.createdAt,
-          note: old.note || ''
+          note: old.note || '',
+          watchStatus: bookmark.watchStatus || old.watchStatus || defaultStatus
         };
       } else {
         // 所有同 bv 书签都有笔记，新建书签
@@ -114,7 +118,8 @@ class BookmarkManager {
           page: bookmark.page || 1,
           id: bookmark.id || Date.now().toString(),
           createdAt: bookmark.createdAt || Date.now(),
-          note: ''
+          note: '',
+          watchStatus: initialStatus
         });
       }
     } else {
@@ -124,7 +129,8 @@ class BookmarkManager {
         page: bookmark.page || 1,
         id: bookmark.id || Date.now().toString(),
         createdAt: bookmark.createdAt || Date.now(),
-        note: ''
+        note: '',
+        watchStatus: initialStatus
       });
     }
 

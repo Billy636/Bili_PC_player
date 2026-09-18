@@ -96,6 +96,13 @@ const handleNavBack = () => webviewRef.value?.canGoBack() && webviewRef.value.go
 const handleNavForward = () => webviewRef.value?.canGoForward() && webviewRef.value.goForward();
 const handleNavHome = () => webviewRef.value?.loadURL('https://www.bilibili.com/');
 
+// 时间格式化辅助
+const formatTime = (sec) => {
+  sec = Math.floor(sec || 0);
+  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60, pad = n => n < 10 ? '0' + n : '' + n;
+  return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+};
+
 // === 核心业务：书签添加 ===
 const handleAddBookmark = async () => {
   if (!webviewRef.value) return;
@@ -108,24 +115,61 @@ const handleAddBookmark = async () => {
       return;
     }
 
-    // 2. 构建书签对象
+    // 2. 智能判断观看状态与分集处理
+    const currentTime = Number(info.currentTime) || 0;
+    const duration = Number(info.duration) || 0;
+    const ended = !!info.ended;
+    const page = Number(info.page) || 1;
+
+    let watchStatus = 'watching';
+    let savedTime = currentTime;
+
+    // 判定是否已看完：视频标记结束，或播放已至尾部（最后15秒或达到总时长95%以上）
+    const isFinished = ended || (duration > 15 && currentTime >= duration - 15) || (duration > 60 && (currentTime / duration) >= 0.95);
+
+    // 判定是否属于刚播放/未看：
+    // 典型场景：上一集刚播完，B站自动连播跳到下一集播了数秒；或刚点进新一集
+    // 判定条件：未看完且（播放小于等于25秒，或者占总长比例小于3%）
+    const isUnwatched = !isFinished && (currentTime <= 25 || (duration > 0 && (currentTime / duration) <= 0.03));
+
+    if (isFinished) {
+      watchStatus = 'finished';
+    } else if (isUnwatched) {
+      watchStatus = 'unwatched';
+      savedTime = 0; // 重置进度为 0，确保下次从头开始播放
+    } else {
+      watchStatus = 'watching';
+    }
+
+    // 3. 构建书签对象
     const bookmark = {
       id: Date.now().toString(),
       title: info.title,
+      partTitle: info.partTitle || '',
       bv: info.bv,
       url: info.url,
-      page: info.page || 1,
-      currentTime: info.currentTime,
+      page: page,
+      totalPages: info.totalPages || 1,
+      currentTime: savedTime,
+      duration: duration,
       coverUrl: info.coverUrl,
-      createdAt: Date.now()
+      createdAt: Date.now(),
+      watchStatus: watchStatus
     };
 
-    // 3. 调用 IPC 保存
+    // 4. 调用 IPC 保存
     if (window.electronAPI) {
       const res = await window.electronAPI.bookmarksAdd(bookmark);
       if (res.success) {
-        // 可选：做一个 toast 提示，这里简单用 alert
-        toastRef.value?.add('书签保存成功！', 'success');
+        let statusTip = '';
+        if (watchStatus === 'finished') {
+          statusTip = ` (P${page} 已看完)`;
+        } else if (watchStatus === 'unwatched') {
+          statusTip = ` (P${page} 未看，下次从头播放)`;
+        } else {
+          statusTip = ` (P${page} · ${formatTime(savedTime)})`;
+        }
+        toastRef.value?.add(`书签已保存${statusTip}`, 'success');
       } else {
         toastRef.value?.add('保存失败: ' + res.error, 'error');
       }
