@@ -79,17 +79,19 @@
             </div>
           </div>
 
-          <!-- 笔记按钮（无笔记时显示） -->
-          <button 
-            v-if="!item.note && editingNoteId !== item.id" 
-            class="btn-icon-note" 
-            @click.stop="startEditNote(item)" 
-            title="添加笔记"
-          >📝</button>
+          <div class="b-actions" @click.stop>
+            <!-- 笔记按钮（无笔记时显示） -->
+            <button 
+              v-if="!item.note && editingNoteId !== item.id" 
+              class="btn-icon-action btn-icon-note" 
+              @click.stop="startEditNote(item)" 
+              title="添加笔记"
+            >📝</button>
 
-          <button class="btn-icon-delete" @click.stop="handleDelete(item)" title="删除">
-            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-          </button>
+            <button class="btn-icon-action btn-icon-delete" @click.stop="handleDelete(item)" title="删除">
+              <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -174,54 +176,52 @@ const stringToGradient = (str) => {
 
 <style scoped>
 /* === 容器样式 === */
-/* 容器：移除毛玻璃，改为近乎不透明的纯色背景 */
 .bookmark-overlay-card {
-  width: 800px;
-  height: 600px;
-  max-height: 90vh;
+  width: 780px;
+  max-width: 92vw;
+  height: auto !important;
+  max-height: 85vh;
+  min-height: 180px;
   display: flex;
   flex-direction: column;
-  
-  /* ❌ 移除 backdrop-filter: blur(20px); 这是最卡的地方 */
-  /* ✅ 改为高不透明度背景，保证清晰且渲染极快 */
   background: rgba(255, 255, 255, 0.98); 
-  
   border: 1px solid #e0e0e0;
-  border-radius: 12px; /* 圆角稍微改小一点，更利落 */
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  padding: 0 !important; /* 彻底消除父级 .overlay-card 带来的叠加 padding */
 }
 
 /* 深色模式适配 */
 :global(body.theme-dark) .bookmark-overlay-card {
-  background: #1a1a1a; /* 纯色深黑 */
+  background: #1a1a1a;
   border: 1px solid #333;
   color: #fff;
 }
 
 /* === 头部 === */
 .overlay-header {
-  padding: 20px 24px 0 24px;
+  padding: 16px 18px 8px 18px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 .header-left { display: flex; align-items: center; gap: 8px; }
-.overlay-title { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
+.overlay-title { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
 .badge { 
-  background: rgba(0,0,0,0.06); padding: 2px 8px; 
+  background: rgba(0, 0, 0, 0.06); padding: 2px 8px; 
   border-radius: 10px; font-size: 12px; font-weight: 600; color: #666; 
 }
-:global(body.theme-dark) .badge { background: rgba(255,255,255,0.15); color: #ccc; }
+:global(body.theme-dark) .badge { background: rgba(255, 255, 255, 0.15); color: #ccc; }
 
 .overlay-close {
-  border: none; background: transparent; font-size: 24px; line-height: 1;
-  color: #999; cursor: pointer; transition: color 0.2s;
+  border: none; background: transparent; font-size: 22px; line-height: 1;
+  color: #999; cursor: pointer; transition: color 0.2s; padding: 2px 6px;
 }
 .overlay-close:hover { color: #f56c6c; }
 
 /* === 搜索 === */
-.search-container { padding: 16px 24px; }
+.search-container { padding: 4px 18px 10px 18px; }
 .search-wrapper {
   position: relative; display: flex; align-items: center;
 }
@@ -229,84 +229,92 @@ const stringToGradient = (str) => {
   position: absolute; left: 12px; opacity: 0.4; font-size: 14px; pointer-events: none;
 }
 .modern-input {
-  width: 100%; padding: 10px 12px 10px 36px;
+  width: 100%; padding: 8px 12px 8px 34px;
   border: 1px solid transparent;
-  background: rgba(0,0,0,0.04);
-  border-radius: 10px; font-size: 14px; color: inherit;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 8px; font-size: 13px; color: inherit;
   transition: all 0.2s;
 }
 .modern-input:focus {
-  background: #fff; border-color: #409eff; box-shadow: 0 0 0 3px rgba(64,158,255,0.15); outline: none;
+  background: #fff; border-color: #409eff; box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.15); outline: none;
 }
 :global(body.theme-dark) .modern-input {
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.08);
 }
 :global(body.theme-dark) .modern-input:focus {
-  background: rgba(0,0,0,0.3);
+  background: rgba(0, 0, 0, 0.3);
 }
 
 /* === 列表 === */
 .bookmark-list {
-  flex: 1; overflow-y: auto; padding: 0 24px 24px 24px;
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 14px 14px 14px;
+  max-height: calc(85vh - 110px);
+}
+
+/* 自定义滚动条 */
+.bookmark-list::-webkit-scrollbar {
+  width: 6px;
+}
+.bookmark-list::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 3px;
+}
+.bookmark-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+:global(body.theme-dark) .bookmark-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 /* 单个卡片 */
-/* web_V2.0/src/components/BookmarkList.vue (style scoped) */
-
-/* 卡片：极致性能优化版 */
 .b-card {
   display: flex; 
   align-items: center;
-  padding: 10px; 
-  margin-bottom: 8px; 
+  padding: 8px 10px; 
+  margin-bottom: 6px; 
   border-radius: 8px;
-  border: 1px solid transparent; /* 预留边框位置避免抖动 */
+  border: 1px solid transparent;
   cursor: pointer; 
   position: relative;
-  
-  /* ❌ 移除所有 transition，实现 0ms 响应 */
   transition: none !important;
-  
-  /* 🚀 核心优化：渲染隔离 */
-  /* 告诉浏览器这个元素的布局和绘制是独立的，hover 时不会影响父容器 */
   contain: layout paint style; 
-  
-  /* 避免默认的透明背景导致混合计算，直接给一个显式背景（可选，视情况而定） */
   background: transparent;
 }
 
-/* 悬停状态：高对比度纯色，瞬间切换 */
 .b-card:hover {
-  background: #f2f3f5; 
-  border-color: #dcdfe6;
+  background: #f4f5f7; 
+  border-color: #e5e7eb;
 }
 
-/* === 深色模式专属优化 === */
 :global(body.theme-dark) .b-card { 
-  /* 深色模式下，默认背景保持透明 */
   background: transparent;
   border-color: transparent;
 }
 
 :global(body.theme-dark) .b-card:hover { 
-  /* ⚡️ 悬停时：使用高亮深灰，且不使用半透明 */
-  background: #333333; 
-  border-color: #4c4c4c;
+  background: #2a2a2a; 
+  border-color: #3d3d3d;
 }
 
-/* 针对内部元素的优化：防止文字/图片在父级 hover 时发生重绘 */
-.b-info, .b-cover, .btn-icon-delete {
-  pointer-events: none; /* 让鼠标事件直接穿透到 card，减少事件冒泡处理 */
+/* 渲染隔离与事件穿透控制 */
+.b-info, .b-cover {
+  pointer-events: none;
 }
-/* 但要允许点击删除按钮和笔记区域 */
-.btn-icon-delete, .b-note {
+.b-actions, .btn-icon-action, .b-note {
   pointer-events: auto;
 }
 
 /* 封面 */
 .b-cover {
-  width: 120px; height: 68px; border-radius: 8px; 
-  overflow: hidden; position: relative; flex-shrink: 0; margin-right: 16px;
+  width: 116px;
+  height: 65px;
+  border-radius: 6px; 
+  overflow: hidden;
+  position: relative;
+  flex-shrink: 0;
+  margin-right: 12px;
   background: #eee;
 }
 .gradient-bg { width: 100%; height: 100%; opacity: 0.8; }
@@ -314,48 +322,111 @@ const stringToGradient = (str) => {
   position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
 }
 .play-overlay {
-  position: absolute; inset: 0; background: rgba(0,0,0,0.3);
+  position: absolute; inset: 0; background: rgba(0, 0, 0, 0.3);
   color: #fff; display: flex; align-items: center; justify-content: center;
-  font-size: 20px; opacity: 0; transition: opacity 0.2s;
+  font-size: 18px; opacity: 0; transition: opacity 0.2s;
 }
 .b-card:hover .play-overlay { opacity: 1; }
 
 /* 信息 */
-.b-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.b-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+}
 .b-title {
-  font-size: 15px; font-weight: 600; color: #333;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-size: 14px;
+  font-weight: 600;
+  color: #222;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-all;
 }
-:global(body.theme-dark) .b-title { color: #eee; }
+:global(body.theme-dark) .b-title { color: #f0f0f0; }
 
-.b-meta { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #888; }
-.tag { padding: 2px 6px; border-radius: 4px; font-weight: 500; font-size: 11px; }
-.tag-page { background: rgba(230,162,60,0.1); color: #e6a23c; }
-.tag-time { background: rgba(64,158,255,0.1); color: #409eff; }
-.date-text { margin-left: auto; opacity: 0.7; }
+.b-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #888;
+}
+.tag { padding: 1px 6px; border-radius: 4px; font-weight: 500; font-size: 11px; }
+.tag-page { background: rgba(230, 162, 60, 0.12); color: #e6a23c; }
+.tag-time { background: rgba(64, 158, 255, 0.12); color: #409eff; }
+.date-text { margin-left: auto; opacity: 0.75; font-size: 12px; white-space: nowrap; }
+:global(body.theme-dark) .date-text { color: #aaa; }
 
-/* 删除按钮 */
+/* 操作按钮区 */
+.b-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+.btn-icon-action {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s, background-color 0.15s;
+}
+.b-card:hover .btn-icon-action {
+  opacity: 1;
+}
+.btn-icon-note {
+  font-size: 13px;
+}
+.btn-icon-note:hover {
+  background: rgba(103, 194, 58, 0.15);
+}
 .btn-icon-delete {
-  width: 32px; height: 32px; border-radius: 8px; border: none;
-  background: transparent; color: #ccc; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.2s; opacity: 0; transform: translateX(10px);
+  color: #999;
 }
-.btn-icon-delete:hover { background: rgba(245,108,108,0.1); color: #f56c6c; }
-.b-card:hover .btn-icon-delete { opacity: 1; transform: translateX(0); }
+.btn-icon-delete:hover {
+  background: rgba(245, 108, 108, 0.12);
+  color: #f56c6c;
+}
+:global(body.theme-dark) .btn-icon-delete { color: #888; }
+:global(body.theme-dark) .btn-icon-delete:hover {
+  background: rgba(245, 108, 108, 0.2);
+  color: #ff7875;
+}
+:global(body.theme-dark) .btn-icon-note:hover {
+  background: rgba(103, 194, 58, 0.25);
+}
 
 /* 空状态 */
 .empty-state {
-  display: flex; flex-direction: column; align-items: center; 
-  justify-content: center; height: 200px; color: #999;
+  display: flex;
+  flex-direction: column;
+  align-items: center; 
+  justify-content: center;
+  padding: 36px 0;
+  color: #999;
 }
-.empty-icon { font-size: 48px; margin-bottom: 10px; opacity: 0.5; }
+.empty-icon { font-size: 40px; margin-bottom: 8px; opacity: 0.5; }
+.empty-text { font-size: 13px; }
 
 /* 笔记区域 */
-.b-note { margin-top: 6px; }
+.b-note { margin-top: 3px; }
 .note-display {
   display: inline-flex; align-items: center; gap: 4px;
-  padding: 4px 8px; background: rgba(103, 194, 58, 0.1);
+  padding: 3px 8px; background: rgba(103, 194, 58, 0.1);
   border-radius: 4px; cursor: pointer; font-size: 12px; color: #67c23a;
   max-width: 100%;
 }
@@ -363,7 +434,7 @@ const stringToGradient = (str) => {
 .note-icon { flex-shrink: 0; }
 .note-text { 
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
-  max-width: 400px;
+  max-width: 550px;
 }
 :global(body.theme-dark) .note-display { 
   background: rgba(103, 194, 58, 0.15); 
@@ -373,32 +444,22 @@ const stringToGradient = (str) => {
 /* 笔记编辑 */
 .note-edit-container { display: flex; flex-direction: column; gap: 6px; }
 .note-input {
-  width: 100%; min-height: 50px; max-height: 100px; padding: 8px;
+  width: 100%; min-height: 48px; max-height: 96px; padding: 6px 8px;
   border: 1px solid #dcdfe6; border-radius: 6px;
   font-size: 12px; resize: vertical; font-family: inherit;
   background: #fff; color: #333;
 }
-.note-input:focus { border-color: #67c23a; outline: none; box-shadow: 0 0 0 2px rgba(103,194,58,0.15); }
+.note-input:focus { border-color: #67c23a; outline: none; box-shadow: 0 0 0 2px rgba(103, 194, 58, 0.15); }
 :global(body.theme-dark) .note-input { 
   background: #2a2a2a; border-color: #444; color: #eee; 
 }
 .note-actions { display: flex; gap: 6px; }
 .note-btn {
-  padding: 4px 12px; border: none; border-radius: 4px;
+  padding: 3px 10px; border: none; border-radius: 4px;
   font-size: 12px; cursor: pointer; transition: opacity 0.2s;
 }
 .note-btn:hover { opacity: 0.85; }
 .note-save { background: #67c23a; color: #fff; }
 .note-cancel { background: #eee; color: #666; }
 :global(body.theme-dark) .note-cancel { background: #3a3a3a; color: #ccc; }
-
-/* 笔记按钮 */
-.btn-icon-note {
-  width: 32px; height: 32px; border-radius: 8px; border: none;
-  background: transparent; cursor: pointer; font-size: 14px;
-  display: flex; align-items: center; justify-content: center;
-  opacity: 0; transition: opacity 0.2s; flex-shrink: 0;
-}
-.btn-icon-note:hover { background: rgba(103,194,58,0.1); }
-.b-card:hover .btn-icon-note { opacity: 1; }
 </style>

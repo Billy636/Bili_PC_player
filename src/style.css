@@ -123,9 +123,6 @@ webview {
   display: flex;
   flex-direction: column;
   font-size: 13px;
-  /* 针对书签列表的特殊尺寸 */
-  width: 800px;
-  height: 600px;
   max-height: 90vh;
   max-width: 90vw;
 }

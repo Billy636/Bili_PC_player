@@ -42,11 +42,12 @@
           "arch": ["x64"]
         }
       ],
-      "icon": "electron/assets/favicon.ico"
+      "icon": "electron/assets/favicon.ico",
+      "requestedExecutionLevel": "requireAdministrator"
     },
     "nsis": {
       "oneClick": false,
-      "perMachine": false,
+      "perMachine": true,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
