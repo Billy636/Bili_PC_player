@@ -1,7 +1,7 @@
 {
   "name": "bilibili-desktop-player",
-  "version": "2.0.0",
-  "main": "dist-electron/main.js", 
+  "version": "2.1.0",
+  "main": "dist-electron/main.js",
   "description": "Bilibili Desktop Player built with Vue 3 and Electron",
   "author": "Your Name",
   "scripts": {
@@ -39,7 +39,9 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "electron/assets/favicon.ico",
